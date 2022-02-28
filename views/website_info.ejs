@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>layui</title>
+<link rel="stylesheet" href="./layui/css/layui.css">
+</head>
+<body>
+
+<div class="layui-layout layui-layout-admin">
+  <div class="layui-header">
+    
+    <ul class="layui-nav" lay-filter="">
+        <li class="layui-nav-item"><a href="/">主页</a></li>
+        <li class="layui-nav-item layui-this"><a href="/website_info">网站</a></li>
+        <li class="layui-nav-item"><a href="/sub_page_info">子页面</a></li>
+        <li class="layui-nav-item"><a href="/class_info">分类</a></li>         
+    </ul>
+
+    <ul class="layui-nav layui-layout-right">
+      <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+        <a href="javascript:;">
+          <img src="http://www.kevinnan.org.cn/usr/images/me.jpg" class="layui-nav-img">
+          nachr
+        </a>
+        <dl class="layui-nav-child">     
+          <dd><a href="/website_info" target="_blank">Management</a></dd>
+        </dl>
+      </li>
+    </ul>
+  </div>
+
+  <div class="layui-body">
+    <!-- 内容主体区域 -->
+    <div style="padding-top: 2%;">
+        <h2>
+            <strong style="font-family: Arial, Helvetica, sans-serif;">管理网站</strong>
+            <a href="/add_website_info" class="layui-btn layui-btn-sm" target="_blank" style="font-size: medium;">新增</a>
+        </h2>
+    </div>
+    <div style="padding-top: 5%; padding-right:20%; padding-left: 0%;">
+
+      <table class="layui-hide" id="test" lay-filter="test"></table>
+      <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-xs" lay-event="sub_page">子</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+      </script>
+    
+      <script type="text/html" id="titleTpl">
+        <a href="{{d.website_head.website_url}}" class="layui-table-link">{{d.website_head.website_title}}</a>
+      </script>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="./layui/layui.js"></script>
+<script>
+//JS 
+layui.use(['element', 'layer', 'util'], function(){
+  var element = layui.element
+  ,layer = layui.layer
+  ,util = layui.util
+  ,$ = layui.$;
+  
+  //头部事件
+  util.event('lay-header-event', {
+    //左侧菜单事件
+    menuLeft: function(othis){
+      layer.msg('展开左侧菜单的操作', {icon: 0});
+    }
+  });
+});
+
+
+layui.use('table', function(){
+  var table = layui.table;
+
+  table.render({
+    elem: '#test'
+    ,url:'/api/website-info'
+    ,toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+    ,defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+      title: '提示'
+      ,layEvent: 'LAYTABLE_TIPS'
+      ,icon: 'layui-icon-tips'
+    }]
+    ,title: '网站分类表'
+    ,cols: [[
+      {type: 'checkbox', fixed: 'left'}
+      ,{field:'website_head', title:'网站标题', fixed: 'left', templet:"#titleTpl"}
+      ,{field:'website_detail', title:'网站介绍'}
+      ,{field:'website_class_1', title:'一级目录', sort: true}
+      ,{field:'website_class_2', title:'二级目录', sort: true}
+      ,{field:'sub_page_num', title:'子页面数'}
+      ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:180}
+    ]]
+    ,page: true
+  });
+
+  //监听行工具事件
+  table.on('tool(test)', function(obj){
+    var data = obj.data;
+    console.log(data)
+    if(obj.event === 'sub_page'){
+      var url = '/add_sub_page_info?' + 'website_title=' + data.website_head.website_title +
+                '&website_url=' + data.website_head.website_url;
+      window.location.href = url;
+    }if(obj.event === 'del'){
+      if(data.sub_page_num !== 0){
+        layer.confirm('存在子页面，非法操作!');
+      }else{
+        layer.confirm('确定要删除吗', function(index){
+          layui.$.ajax({
+            url: 'api/website-info-delete-post',
+            type: 'post',
+            dataType: 'json',
+            data:{
+               "website_title": data.website_head.website_title
+            },
+            success: function(data){
+              if(data.d_judge === 0){
+                  obj.del();
+                  layer.close(index);
+                }
+            },
+            error: function(data){
+            }
+          })    
+                
+        });                       
+      }
+    } else if(obj.event === 'edit'){
+      var url = '/modify_website_info?' + 'website_title=' + data.website_head.website_title +
+                '&website_url=' + data.website_head.website_url + '&website_detail=' + 
+                data.website_detail + '&website_class_1=' + data.website_class_1 + 
+                '&website_class_2=' + data.website_class_2;
+      window.location.href = url;
+    }
+  });
+});
+
+</script>
+</body>
+</html>
