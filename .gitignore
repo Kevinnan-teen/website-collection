@@ -1,0 +1,3 @@
+node_modules/
+test/test_data.db
+models/production_data.db
