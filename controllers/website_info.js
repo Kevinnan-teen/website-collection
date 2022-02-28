@@ -1,4 +1,5 @@
-const {findData, insertData, deleteData} = require('../models/sql_exec');
+const {findData, insertData, deleteData, updateData} = require('../models/sql_exec');
+
 
 let websiteInfoRender = async function(ctx){
     if(ctx.isAuthenticated()){
@@ -185,5 +186,29 @@ let deleteWebsiteInfoPostAPI = async function(ctx){
     }
 }
 
-module.exports = {websiteInfoRender, websiteInfoGetAPI, modifyWebsiteInfo,
-                  AddWebsiteInfo, websiteInfoPostAPI, deleteWebsiteInfoPostAPI}
+let modifyWebsiteInfoPostAPI = async function(ctx){
+    if(ctx.isAuthenticated()){        
+        let post_data = ctx.request.body;
+        console.log(post_data);
+        const update_sql = 'UPDATE website_info SET website_url=' + '"' + post_data.website_url + '", ' + 
+                           'website_detail=' + '"' + post_data.website_detail + '", ' + "website_class_1=" + 
+                           '"' + post_data.website_class_1 + '", ' + 'website_class_2=' + '"' + 
+                           post_data.website_class_2 + '" ' + 'WHERE website_title=' + '"' + post_data.website_title + '"';        
+        var m_judge = 0;
+        await updateData(update_sql)
+        .then(r => {
+            m_judge = 0;
+        })
+        .catch(err => {
+            m_judge = -1;
+        })
+        ctx.body = {
+            "m_judge": m_judge,
+        }
+    }else{
+        ctx.redirect('/login');
+    }
+}
+
+module.exports = {websiteInfoRender, websiteInfoGetAPI, modifyWebsiteInfo, AddWebsiteInfo, 
+                  websiteInfoPostAPI, deleteWebsiteInfoPostAPI, modifyWebsiteInfoPostAPI}
