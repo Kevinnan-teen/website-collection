@@ -130,17 +130,16 @@ layui.use(['jquery', 'form'], function(){
   form.on('submit(demo1)', function(data){
     //layer.msg(JSON.stringify(data.field));
     layui.$.ajax({
-        url : '/api/website-info-post',
+        url : '/api/website-info-modify-post',
         type : 'post',
         dataType : 'json',
         contentType :"application/json",
         data :  JSON.stringify(data.field),
-        success: function(data){
-            console.log('接收');
-            if(data.i_judge === 19)
-                layer.msg("写入失败，分类已存在");
+        success: function(data){            
+            if(data.m_judge === 0)
+                layer.msg("修改成功");
             else
-                layer.msg("写入成功");
+                layer.msg("修改失败");
             },
             error: function(){
                 console.log('失败');
