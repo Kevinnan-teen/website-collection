@@ -56,5 +56,19 @@ let deleteData = function(sql_query){
     })
 }
 
+let updateData = function(sql_query){
+    return new Promise((resolve, reject) => {
+        db.run(sql_query, err => {
+            if(err){
+                console.log(err);
+                reject(err);
+            }else{
+                console.log('update successfully!');
+                resolve(true);
+            }
+        })
+    })
+}
 
-module.exports = {insertData, findData, deleteData};
+
+module.exports = {insertData, findData, deleteData, updateData};
