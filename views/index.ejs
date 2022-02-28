@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>website-collection</title>
+<link rel="stylesheet" href="./layui/css/layui.css">
+</head>
+<body>
+
+<div class="layui-layout layui-layout-admin">
+  <div class="layui-header layui-bg-cyan">
+    <div class="layui-logo layui-hide-xs layui-bg-green">
+      <a href="/" style="color: black;">Website Collection</a>      
+    </div>
+      <!-- 头部区域（可配合layui 已有的水平导航） -->
+      <!-- <ul class="layui-nav layui-layout-left">
+        <li class="layui-nav-item layui-hide-xs"><a href="">About</a></li>
+      </ul> -->
+
+
+      <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+          <!-- <div> -->
+          <a href="javascript:;" id="user_name">            
+          </a>
+        <!-- </div> -->
+          <dl class="layui-nav-child">     
+            <dd><a href="/login" target="_blank">Login</a></dd>            
+            <dd><a href="/website_info" target="_blank">Management</a></dd>
+            <dd><a href="/api/logout" target="_blank">Logout</a></dd>
+          </dl>
+        </li>
+      </ul>      
+  
+    <div class="layui-side layui-bg-cyan">
+      <div class="layui-side-scroll">
+        <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+        <ul class="layui-nav layui-nav-tree" lay-filter="test">        
+            <% for(let data of class_data_list){ %>
+              <li class="layui-nav-item">
+              <a id="<%= data.class_parent %>" href="javascript:;"><%= data.class_parent %></a>
+              <dl class="layui-nav-child">
+                <% for(let child_data of data.class_child){ %>              
+                    <dd><a id="<%= child_data %>" href="javascript:;"><%= child_data %></a></dd>              
+                <% } %>
+              </dl>
+            </li>
+            <% } %>    
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="layui-body" style="background-color: #F6F6F6;">
+    <!-- 内容主体区域 -->
+    <div style="padding-top: 5%; padding-right:25%; padding-left:15%;">
+
+      <div id="project_intro">
+        <blockquote class="layui-elem-quote layui-text" style="font-size: medium;">
+          <strong>Website-Collection</strong> 收集了我经常浏览的博客、文档的网站链接以及内容介绍。
+          <br>
+          同时也收集了这些网站里对我有启发意义的内容子页面。并以二级目录的方式保存，方便随时查阅。
+          <br>
+          本项目前端使用 <a href="http://layui-doc.pearadmin.com/doc/index.html">Layui</a> 框架、
+          后端使用 <a href="https://demopark.github.io/koa-docs-Zh-CN/">koa2</a> 框架开发，更多内容可访问我的GitHub：
+          <a href="https://github.com/Kevinnan-teen/website-collection">Kevinnan-teen/website-collection</a>。
+        </blockquote>
+      </div>
+
+      <ul class="layui-timeline" id="website-info">
+      </ul>
+    </div>
+  </div>
+
+  <!-- <h1 style="background-color: #8080c0; color: white;"></h1> -->
+
+</div>
+
+<script src="./layui/layui.js"></script>
+<script>
+//JS 
+layui.use(['element', 'layer', 'util'], function(){
+  var element = layui.element
+  ,layer = layui.layer
+  ,util = layui.util
+  ,$ = layui.$;
+  //头部事件
+  util.event('lay-header-event', {
+    //左侧菜单事件
+    menuLeft: function(othis){
+      layer.msg('展开左侧菜单的操作', {icon: 0});
+    }
+  });
+});
+
+layui.use(['jquery'], function(){
+  //判断是否是登录状态
+  layui.$.ajax({
+    url: '/api/session-status',
+    type: 'POST',
+    dataType: "json",
+    success: function(data){
+      if(data.load){
+        let content = '<img src="http://www.kevinnan.org.cn/usr/images/me.jpg" class="layui-nav-img">' + data.username;
+        // layui.$("#user_img").attr("src", "http://www.kevinnan.org.cn/usr/images/me.jpg");
+        layui.$("#user_name").children().remove();
+        layui.$("#user_name").append(content);
+      }else{
+        let content = '<img src="https://img.88icon.com/download/jpg/20200713/10299bcff35879bd488093491af89fd0_512_511.jpg" class="layui-nav-img">未登录';        
+        layui.$("#user_name").children().remove();
+        layui.$("#user_name").append(content);
+      }
+    },
+    error: function(data){
+      console.log('err');
+    }
+  })
+
+  layui.$("a").click(function(e){
+    layui.$.ajax({
+      url: '/api/all-info',
+      type: "POST",
+      data:{
+        website_class: e.target.id,
+      },
+      dataType: "json",
+      success: function(data){
+        layui.$('#project_intro').remove(); //隐藏介绍        
+        // console.log(data);
+        let info = '';
+        for(let d of data){
+          info += '<li class="layui-timeline-item"> <i class="layui-icon layui-timeline-axis"></i><div class="layui-timeline-content layui-text">';
+          info += '<h1 class="layui-timeline-title">' + '<a href= ' + '"'+ d.website_url + '"'+ '>' + 
+                  d.website_title + '</a>'  + '</h1>';
+          info +=  '<p style="color: #111;">' + d.website_detail + '</p>';
+          if(d.sub_page.length !== 0){
+            info += '<ul>';
+            for(var page of d.sub_page){
+              info += '<li>' + '<h3> <a style="font-family: Arial, Helvetica, sans-serif; color:black" href= ' + '"'+ page.sub_page_url + '"'+ '>' + 
+                page.sub_page_title + '</a> </h3>' + '</li>';
+            }
+            info += '</ul>'
+          }
+          info += '</div></li>'             
+        }          
+        layui.$('#website-info').children().remove();
+        layui.$('#website-info').append(info);    
+      },
+      error: function(data){
+        console.log('error');
+        console.log(data);            
+      }
+    })
+  })
+});
+</script>
+</body>
+</html>
