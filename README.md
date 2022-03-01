@@ -45,11 +45,18 @@
     ```
     node create_user_info.js username password
     ```
-- 进入项目根目录，运行程序；
+- 进入项目根目录，让程序在后台运行；
   ```
-  node app.js
+  node app.js &
   ```
 - 在浏览器端用`http://ip:3000`访问项目主页；
+- 后续集成，为了方便更新在docker中运行的项目代码，我们可使用git来持续更新
+    - 将本地的代码变动提交到GitHub上；
+    - web服务器端把执行`git pull`命令拉取最新代码；
+    - 在项目跟目录下执行`docker cp`命令，更新容器中的目录/文件
+    ```
+    docker container cp . [container/ID]:[dir]
+    ```
 
 ## code
 后端使用Koa2搭建，用到以下Koa2中间件模块：
